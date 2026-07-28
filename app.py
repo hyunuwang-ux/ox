@@ -52,7 +52,7 @@ if st.button("RFP 구조화 분석 시작 🔍"):
             try:
                 # 최신 공식 라이브러리 지정 모델 명칭인 'gemini-2.5-flash'로 호출
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3-flash-preview',
                     contents=parser_prompt,
                 )
                 
@@ -122,7 +122,7 @@ if st.session_state.parsed_data:
             try:
                 # 2차 생성도 공식 표준 명칭인 'gemini-2.5-flash'로 고정 호출
                 final_response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3-flash-preview',
                     contents=final_prompt,
                 )
                 st.markdown("---")
