@@ -122,11 +122,10 @@ if st.session_state.parsed_data:
             """
 
             # 최신 구글 공식 추천 모델 호출 방식으로 2차 빌드 진행
-           final_response = client.models.generate_content(
-           model='gemini-1.5-flash',
-           contents=final_prompt,
-)
-
+            final_response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=final_prompt,
+            )
             
             st.markdown("---")
             st.subheader("📝 최종 결과물: NEXUS 브랜드 맞춤형 초안")
