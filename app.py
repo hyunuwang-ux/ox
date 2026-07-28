@@ -3,10 +3,10 @@ import google.generativeai as genai
 import json
 
 # 1. 보안 설정: Streamlit Secrets로부터 무료 Gemini API 키 로드
-try:
+if "GEMINI_API_KEY" in st.secrets:
     GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=GOOGLE_API_KEY)
-except Exception:
+else:
     st.error("Streamlit Secrets에 'GEMINI_API_KEY'가 설정되지 않았습니다.")
     st.stop()
 
@@ -49,12 +49,11 @@ if st.button("RFP 구조화 분석 시작 🔍"):
             {rfp_input}
             """
             
-            # Gemini 2.5 Flash 호출
-            model = genai.GenerativeModel("gemini-2.5-flash")
+            # 최신 호환 모델 사용
+            model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(parser_prompt)
             
             try:
-                # 결과물을 JSON 객체로 변환하여 세션에 저장
                 cleaned_text = response.text.strip().replace("```json", "").replace("```", "")
                 st.session_state.parsed_data = json.loads(cleaned_text)
             except Exception as e:
@@ -78,7 +77,6 @@ if st.session_state.parsed_data:
     if st.button("브랜드 맞춤형 TOC & Key Idea 초안 생성 🚀"):
         with st.spinner("NEXUS 컨설팅 스타일로 목차를 빌드하는 중..."):
             
-            # [백엔드 고정 영역] 가상 브랜드 'NEXUS'의 컨텍스트 및 우수 제안서 샘플(Few-Shot) 정의
             nexus_brand_context = """
             [System Context]
             너는 대한민국 최고의 IT 전략 컨설팅 펌인 'NEXUS 컨설팅'의 대표 파트너다. 
@@ -106,7 +104,6 @@ if st.session_state.parsed_data:
             ---
             """
 
-            # 사용자가 수정한 최종 대시보드 데이터 조합
             final_prompt = f"""
             {nexus_brand_context}
 
@@ -120,10 +117,9 @@ if st.session_state.parsed_data:
             위의 'NEXUS 우수 성공 샘플'의 구조, 톤앤매너, 명사형 종결 규칙을 100% 반영하여, 이번 User Data에 최적화된 새로운 [TOC]와 [Key Idea] 초안을 생성해줘. 다른 잡담은 하지 말고 결과만 출력해줘.
             """
 
-            model = genai.GenerativeModel("gemini-2.5-flash")
+            model = genai.GenerativeModel("gemini-1.5-flash")
             final_response = model.generate_content(final_prompt)
             
-            # 최종 결과 출력 및 복사 기능 제공
             st.markdown("---")
             st.subheader("📝 최종 결과물: NEXUS 브랜드 맞춤형 초안")
             st.code(final_response.text, language="markdown")
