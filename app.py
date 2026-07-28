@@ -50,18 +50,18 @@ if st.button("RFP 구조화 분석 시작 🔍"):
             {rfp_input}
             """
             
-            # 최신 구글 공식 추천 모델인 gemini-2.5-flash 사용
-response = client.models.generate_content(
-    model='gemini-2.5-flash',  # 그대로 유지하되, 만약 에러가 지속되면 'gemini-1.5-flash'로 낮춰서 테스트해봅니다.
-    contents=parser_prompt,
-)
-
+            # 최신 구글 공식 추천 모델 사용
+            response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=parser_prompt,
+            )
             
             try:
                 cleaned_text = response.text.strip().replace("```json", "").replace("```", "")
                 st.session_state.parsed_data = json.loads(cleaned_text)
             except Exception as e:
                 st.error("AI 응답을 JSON으로 파싱하는 데 실패했습니다. 다시 시도해 주세요.")
+
 
 # 2단계: 구조화된 데이터 시각화 및 사용자의 직접 수정(Tuning) 섹션
 if st.session_state.parsed_data:
@@ -123,8 +123,8 @@ if st.session_state.parsed_data:
 
             # 최신 구글 공식 추천 모델 호출 방식으로 2차 빌드 진행
            final_response = client.models.generate_content(
-    model='gemini-1.5-flash',
-    contents=final_prompt,
+           model='gemini-1.5-flash',
+           contents=final_prompt,
 )
 
             
