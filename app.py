@@ -51,10 +51,11 @@ if st.button("RFP 구조화 분석 시작 🔍"):
             """
             
             # 최신 구글 공식 추천 모델인 gemini-2.5-flash 사용
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=parser_prompt,
-            )
+response = client.models.generate_content(
+    model='gemini-2.5-flash',  # 그대로 유지하되, 만약 에러가 지속되면 'gemini-1.5-flash'로 낮춰서 테스트해봅니다.
+    contents=parser_prompt,
+)
+
             
             try:
                 cleaned_text = response.text.strip().replace("```json", "").replace("```", "")
