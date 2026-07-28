@@ -1,11 +1,12 @@
 import streamlit as st
-import google.generativeai as genai
 import json
+from google import genai
+from google.genai import types
 
 # 1. 보안 설정: Streamlit Secrets로부터 무료 Gemini API 키 로드
 if "GEMINI_API_KEY" in st.secrets:
     GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=GOOGLE_API_KEY)
+    client = genai.Client(api_key=GOOGLE_API_KEY)
 else:
     st.error("Streamlit Secrets에 'GEMINI_API_KEY'가 설정되지 않았습니다.")
     st.stop()
@@ -49,9 +50,11 @@ if st.button("RFP 구조화 분석 시작 🔍"):
             {rfp_input}
             """
             
-            # 최신 호환 모델 사용
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            response = model.generate_content(parser_prompt)
+            # 최신 구글 공식 추천 모델인 gemini-2.5-flash 사용
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=parser_prompt,
+            )
             
             try:
                 cleaned_text = response.text.strip().replace("```json", "").replace("```", "")
@@ -117,8 +120,11 @@ if st.session_state.parsed_data:
             위의 'NEXUS 우수 성공 샘플'의 구조, 톤앤매너, 명사형 종결 규칙을 100% 반영하여, 이번 User Data에 최적화된 새로운 [TOC]와 [Key Idea] 초안을 생성해줘. 다른 잡담은 하지 말고 결과만 출력해줘.
             """
 
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            final_response = model.generate_content(final_prompt)
+            # 최신 구글 공식 추천 모델 호출 방식으로 2차 빌드 진행
+            final_response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=final_prompt,
+            )
             
             st.markdown("---")
             st.subheader("📝 최종 결과물: NEXUS 브랜드 맞춤형 초안")
