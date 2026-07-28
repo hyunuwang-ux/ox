@@ -1,11 +1,11 @@
 import streamlit as st
 import json
 from google import genai
-from google.genai import types
 
 # 1. 보안 설정: Streamlit Secrets로부터 무료 Gemini API 키 로드
 if "GEMINI_API_KEY" in st.secrets:
     GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+    # 최신 규격에 맞게 클라이언트 초기화
     client = genai.Client(api_key=GOOGLE_API_KEY)
 else:
     st.error("Streamlit Secrets에 'GEMINI_API_KEY'가 설정되지 않았습니다.")
@@ -34,7 +34,6 @@ if st.button("RFP 구조화 분석 시작 🔍"):
         st.warning("RFP 내용을 입력해주세요.")
     else:
         with st.spinner("RFP에서 핵심 정보를 구조화하는 중..."):
-            # 1차 파싱을 위한 시스템 프롬프트 (JSON 강제)
             parser_prompt = f"""
             너는 입력된 RFP 원문에서 핵심 제안 요소를 추출하는 데이터 파서(Parser)야.
             입력된 텍스트를 분석하여 반드시 아래의 JSON 포맷으로만 답변해줘. 다른 설명 텍스트는 절대 붙이지 마.
@@ -50,18 +49,17 @@ if st.button("RFP 구조화 분석 시작 🔍"):
             {rfp_input}
             """
             
-            # 최신 구글 공식 추천 모델 사용
-            response = client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=parser_prompt,
-            )
-            
             try:
+                # 최신 공식 라이브러리 지정 모델 명칭인 'gemini-2.5-flash'로 호출
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=parser_prompt,
+                )
+                
                 cleaned_text = response.text.strip().replace("```json", "").replace("```", "")
                 st.session_state.parsed_data = json.loads(cleaned_text)
             except Exception as e:
-                st.error("AI 응답을 JSON으로 파싱하는 데 실패했습니다. 다시 시도해 주세요.")
-
+                st.error(f"오류가 발생했습니다. API Key나 모델 통신을 확인하세요. 세부원인: {e}")
 
 # 2단계: 구조화된 데이터 시각화 및 사용자의 직접 수정(Tuning) 섹션
 if st.session_state.parsed_data:
@@ -121,13 +119,15 @@ if st.session_state.parsed_data:
             위의 'NEXUS 우수 성공 샘플'의 구조, 톤앤매너, 명사형 종결 규칙을 100% 반영하여, 이번 User Data에 최적화된 새로운 [TOC]와 [Key Idea] 초안을 생성해줘. 다른 잡담은 하지 말고 결과만 출력해줘.
             """
 
-            # 최신 구글 공식 추천 모델 호출 방식으로 2차 빌드 진행
-            final_response = client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=final_prompt,
-            )
-            
-            st.markdown("---")
-            st.subheader("📝 최종 결과물: NEXUS 브랜드 맞춤형 초안")
-            st.code(final_response.text, language="markdown")
-            st.success("초안 생성이 완료되었습니다! 위 박스 우측 상단 버튼을 눌러 복사(Copy)하세요.")
+            try:
+                # 2차 생성도 공식 표준 명칭인 'gemini-2.5-flash'로 고정 호출
+                final_response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=final_prompt,
+                )
+                st.markdown("---")
+                st.subheader("📝 최종 결과물: NEXUS 브랜드 맞춤형 초안")
+                st.code(final_response.text, language="markdown")
+                st.success("초안 생성이 완료되었습니다! 위 박스 우측 상단 버튼을 눌러 복사(Copy)하세요.")
+            except Exception as e:
+                st.error(f"TOC 생성 중 오류가 발생했습니다: {e}")
